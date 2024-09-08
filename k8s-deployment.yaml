@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: react-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: react-app
+  template:
+    metadata:
+      labels:
+        component: react-app
+    spec:
+      containers:
+        - name: react-app
+          image: localhost:5000/react-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: REACT_APP_TEXALA_GATEWAY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: uat-system-env
+                  key: solarsoft_gateway_url
+            - name: REACT_APP_TEXALA_WEBSOCKET_SALES_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: uat-system-env
+                  key: solarsoft_websocket_sales_url
+            - name: REACT_APP_TEXALA_WEBSOCKET_INVENTORY_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: uat-system-env
+                  key: solarsoft_websocket_inventory_url
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: react-app-nodeport
+spec:
+  type: NodePort
+  selector:
+    component: react-app
+  ports:
+    - port: 3000
+      targetPort: 3000
+      nodePort: 31002
